@@ -1,35 +1,40 @@
-🧩 Problem
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
-Students often struggle with studying not because they lack motivation, but because they don’t know what to work on, when to work on it, or how to study effectively.
+## Getting Started
 
-Most existing tools fall into two categories:
+First, run the development server:
 
-Scheduling apps that ignore a student’s mood, energy, and mental state.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-Learning platforms that provide content but don’t consider a student’s real schedule, deadlines, or available time.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-As a result, students feel overwhelmed, procrastinate, or waste small pockets of free time because they don’t know what task fits their current situation.
+You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-💡 Solution
+[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
-We built a smart, mood-aware scheduling and learning web app that helps students decide what to study right now.
+The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
 
-The app works by combining:
+This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-the user’s mood and energy level (low, moderate, high),
+## Learn More
 
-their schedule, including assignments and upcoming exams,
+To learn more about Next.js, take a look at the following resources:
 
-and their available time (e.g. 15, 30, or 60 minutes).
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
 
-Based on these inputs, the system recommends the most suitable task — such as:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-assignment work,
+## Deploy on Vercel
 
-exam preparation,
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-or short, focused coding practice sessions inspired by Monkeytype, but using real code instead of plain text.
-
-For coding practice, users type and practice real examples (e.g. Python basics), receive instant feedback, and the app keeps track of what they have already learned so future sessions continue from where they left off.
-
-Our goal is to reduce decision fatigue and help students make consistent progress by turning every study session — even short ones — into meaningful learning.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
