@@ -25,6 +25,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+<<<<<<< HEAD
 # local env files
 .env*.local
 .env
@@ -33,4 +34,21 @@ yarn-error.log*
 .vercel
 
 # typescript
+<<<<<<< HEAD
 *.tsbuildinfo
+=======
+*.tsbuildinfo
+next-env.d.ts
+=======
+# Local env files
+.env
+.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+>>>>>>> b223d75 (feat: integrate CodeType game and refine AI recommendations)
+>>>>>>> 38e3a09f581740bf46efc549c32024a8d71675e5
