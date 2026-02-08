@@ -9,6 +9,7 @@ import GlassCard from '@/components/GlassCard'
 import ScrollIndicator from '@/components/ScrollIndicator'
 import Navbar from '@/components/Navbar'
 import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
+import Link from 'next/link'
 
 // Lazy load 3D components
 const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false })
@@ -59,11 +60,10 @@ export default function Home() {
                         className="flex gap-4"
                         variants={fadeInUp}
                     >
-                        <GradientButton variant="primary">Get Started</GradientButton>
-                        <GradientButton variant="secondary">Watch Demo</GradientButton>
+                       <Link href="/signup"> <GradientButton variant="primary">Get Started</GradientButton></Link>
+                       <Link href="/Demo"> <GradientButton variant="secondary">Watch Demo</GradientButton></Link>
                     </motion.div>
                 </motion.div>
-
                 {/* Right: 3D Brain */}
                 <div className="hidden lg:block w-2/5 h-full">
                     <Hero3D />
