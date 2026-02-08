@@ -52,3 +52,5 @@ next-env.d.ts
 next-env.d.ts
 >>>>>>> b223d75 (feat: integrate CodeType game and refine AI recommendations)
 >>>>>>> 38e3a09f581740bf46efc549c32024a8d71675e5
+
+/lib/generated/prisma
