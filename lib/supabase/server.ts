@@ -32,3 +32,6 @@ export async function createClient() {
     },
   })
 }
+
+// Alias for compatibility with newer routes
+export const createServerSupabaseClient = createClient
