@@ -16,9 +16,17 @@ export async function GET() {
             .eq('user_id', user.id)
             .single()
 
-        if (error) throw error
+        if (error && error.code !== 'PGRST116') throw error
 
-        return NextResponse.json({ stats: data })
+        return NextResponse.json({
+            stats: data ?? {
+                total_study_time: 0,
+                total_sessions: 0,
+                current_streak: 0,
+                longest_streak: 0,
+                last_session_date: null
+            }
+        })
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }

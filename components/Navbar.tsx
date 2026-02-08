@@ -1,10 +1,35 @@
 'use client'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Brain } from 'lucide-react'
+import { Brain, LogOut } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import GradientButton from './GradientButton'
+import { createClient } from '@/lib/supabase/client'
+import type { User } from '@supabase/supabase-js'
 
 export default function Navbar() {
+    const router = useRouter()
+    const [user, setUser] = useState<User | null>(null)
+
+    useEffect(() => {
+        const supabase = createClient()
+        supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
+            setUser(currentUser ?? null)
+        })
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null)
+        })
+        return () => subscription.unsubscribe()
+    }, [])
+
+    const handleLogout = async () => {
+        const supabase = createClient()
+        await supabase.auth.signOut()
+        router.push('/')
+        router.refresh()
+    }
+
     const navLinks = [
         { name: 'Features', href: '#features' },
         { name: 'How It Works', href: '#how-it-works' },
@@ -40,16 +65,35 @@ export default function Navbar() {
 
                     {/* Auth Buttons */}
                     <div className="flex items-center gap-3">
-                        <Link href="/login">
-                            <button className="px-6 py-2 text-slate-300 hover:text-white transition-colors">
-                                Login
-                            </button>
-                        </Link>
-                        <Link href="/signup">
-                            <GradientButton variant="primary" className="!py-2 !px-6 !text-base">
-                                Sign Up
-                            </GradientButton>
-                        </Link>
+                        {user ? (
+                            <>
+                                <Link href="/dashboard">
+                                    <GradientButton variant="primary" className="!py-2 !px-6 !text-base">
+                                        Go to Dashboard
+                                    </GradientButton>
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors text-red-400"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link href="/login">
+                                    <button className="px-6 py-2 text-slate-300 hover:text-white transition-colors">
+                                        Login
+                                    </button>
+                                </Link>
+                                <Link href="/signup">
+                                    <GradientButton variant="primary" className="!py-2 !px-6 !text-base">
+                                        Sign Up
+                                    </GradientButton>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

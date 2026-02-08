@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  // Required: public tables have FKs to auth.users; auth must be in schemas.
+  schemas  = ["public", "auth"]
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+// Enums
+enum MoodLevel {
+  low
+  moderate
+  high
+
+  @@schema("public")
+}
+
+enum TaskType {
+  assignment
+  exam_prep
+  general_study
+  typing_game
+
+  @@schema("public")
+}
+
+enum MistakeSource {
+  typing_game
+  manual
+
+  @@schema("public")
+}
+
+// Models
+model Profile {
+  id                    String   @id @db.Uuid
+  displayName           String?  @map("display_name")
+  defaultSessionMinutes Int?     @default(30) @map("default_session_minutes")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("profiles")
+  @@schema("public")
+}
+
+model Course {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  name        String
+  description String?
+  color       String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  assignments Assignment[]
+  exams       Exam[]
+
+  @@index([userId])
+  @@map("courses")
+  @@schema("public")
+}
+
+model Assignment {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  courseId        String?   @map("course_id") @db.Uuid
+  title           String
+  dueAt           DateTime  @map("due_at") @db.Timestamptz
+  estimatedMinutes Int?     @map("estimated_minutes")
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  course          Course?   @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  studySessions   StudySession[]
+
+  @@index([userId])
+  @@index([dueAt])
+  @@index([courseId])
+  @@map("assignments")
+  @@schema("public")
+}
+
+model Exam {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  courseId  String?  @map("course_id") @db.Uuid
+  title     String
+  examAt    DateTime @map("exam_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  course    Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([examAt])
+  @@index([courseId])
+  @@map("exams")
+  @@schema("public")
+}
+
+model StudySession {
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  startedAt     DateTime    @map("started_at") @db.Timestamptz
+  endedAt       DateTime?   @map("ended_at") @db.Timestamptz
+  plannedMinutes Int        @map("planned_minutes")
+  moodAtStart   MoodLevel   @map("mood_at_start")
+  taskType      TaskType    @map("task_type")
+  taskId        String?     @map("task_id") @db.Uuid
+  notes         String?
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  assignment    Assignment? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  moodLogs      MoodLog[]
+  codingPracticeSessions CodingPracticeSession[]
+
+  @@index([userId])
+  @@index([startedAt])
+  @@map("study_sessions")
+  @@schema("public")
+}
+
+model MoodLog {
+  id              String        @id @default(uuid()) @db.Uuid
+  userId          String        @map("user_id") @db.Uuid
+  loggedAt        DateTime      @map("logged_at") @db.Timestamptz
+  mood            MoodLevel
+  availableMinutes Int          @map("available_minutes")
+  sessionId       String?       @map("session_id") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  studySession    StudySession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([loggedAt])
+  @@map("mood_logs")
+  @@schema("public")
+}
+
+model CodingPracticeSession {
+  id                String        @id @default(uuid()) @db.Uuid
+  userId            String        @map("user_id") @db.Uuid
+  language          String
+  snippetId         String?       @map("snippet_id")
+  startedAt         DateTime      @map("started_at") @db.Timestamptz
+  endedAt           DateTime      @map("ended_at") @db.Timestamptz
+  durationSeconds   Int           @map("duration_seconds")
+  charactersTyped   Int           @map("characters_typed")
+  charactersCorrect Int           @map("characters_correct")
+  wpm               Decimal?      @db.Decimal
+  accuracyPercent   Decimal       @map("accuracy_percent") @db.Decimal
+  sessionId         String?       @map("session_id") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  studySession      StudySession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("coding_practice_sessions")
+  @@schema("public")
+}
+
+model MistakeRecord {
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  source      MistakeSource
+  mistakeType String        @map("mistake_type")
+  context     String?
+  language    String?
+  occurredAt  DateTime      @map("occurred_at") @db.Timestamptz
+  count       Int           @default(1)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([userId])
+  @@index([occurredAt])
+  @@map("mistake_records")
+  @@schema("public")
+}
+
+model Snippet {
+  id         String   @id
+  language   String
+  code       String   @db.Text
+  difficulty String?
+
+  @@map("snippets")
+  @@schema("public")
+}

@@ -14,7 +14,7 @@ export async function GET() {
             .from('assignments')
             .select('*, courses(*)')
             .eq('user_id', user.id)
-            .order('due_date', { ascending: true })
+            .order('due_at', { ascending: true })
 
         if (error) throw error
 

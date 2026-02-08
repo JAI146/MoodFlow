@@ -31,49 +31,50 @@ export async function PUT(
 
         if (error) throw error
 
-        // Update user stats
-        const { data: stats } = await supabase
+        // Upsert user stats: save total study time, session count, current streak, longest streak
+        const today = new Date().toISOString().split('T')[0]
+        const { data: existingStats } = await supabase
             .from('user_stats')
             .select('*')
             .eq('user_id', user.id)
             .single()
 
-        if (stats) {
-            const today = new Date().toISOString().split('T')[0]
-            const lastSessionDate = stats.last_session_date
+        const prevTotalTime = existingStats?.total_study_time ?? 0
+        const prevSessions = existingStats?.total_sessions ?? 0
+        const prevStreak = existingStats?.current_streak ?? 0
+        const prevLongest = existingStats?.longest_streak ?? 0
+        const lastSessionDate = existingStats?.last_session_date ?? null
 
-            // Calculate streak
-            let newStreak = stats.current_streak || 0
-            if (lastSessionDate) {
-                const lastDate = new Date(lastSessionDate)
-                const todayDate = new Date(today)
-                const daysDiff = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24))
-
-                if (daysDiff === 0) {
-                    // Same day, keep streak
-                    newStreak = stats.current_streak
-                } else if (daysDiff === 1) {
-                    // Consecutive day, increment streak
-                    newStreak = (stats.current_streak || 0) + 1
-                } else {
-                    // Streak broken, start over
-                    newStreak = 1
-                }
+        let newStreak: number
+        if (lastSessionDate) {
+            const lastDate = new Date(lastSessionDate)
+            const todayDate = new Date(today)
+            const daysDiff = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24))
+            if (daysDiff === 0) {
+                newStreak = prevStreak
+            } else if (daysDiff === 1) {
+                newStreak = prevStreak + 1
             } else {
                 newStreak = 1
             }
-
-            await supabase
-                .from('user_stats')
-                .update({
-                    total_study_time: (stats.total_study_time || 0) + (durationActual || 0),
-                    total_sessions: (stats.total_sessions || 0) + 1,
-                    current_streak: newStreak,
-                    longest_streak: Math.max(stats.longest_streak || 0, newStreak),
-                    last_session_date: today
-                })
-                .eq('user_id', user.id)
+        } else {
+            newStreak = 1
         }
+        const newLongest = Math.max(prevLongest, newStreak)
+        const newTotalTime = prevTotalTime + (durationActual ?? 0)
+
+        await supabase.from('user_stats').upsert(
+            {
+                user_id: user.id,
+                total_study_time: newTotalTime,
+                total_sessions: prevSessions + 1,
+                current_streak: newStreak,
+                longest_streak: newLongest,
+                last_session_date: today,
+                updated_at: new Date().toISOString()
+            },
+            { onConflict: 'user_id' }
+        )
 
         return NextResponse.json({ session })
     } catch (error: any) {

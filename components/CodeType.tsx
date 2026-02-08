@@ -125,8 +125,11 @@ public:
 }
 
 function getUser(id: number): Promise<User> {
-  return fetch(\`/api/users/\${id}\`)
-    .then(res => res.json());
+  return fetch('/api/onboarding/profile')
+    .then(res => res.json())
+    .then((data: { profile?: { id?: number; display_name?: string } }) =>
+      data.profile ? { id: data.profile.id ?? id, name: data.profile.display_name ?? '', email: '' } : { id, name: '', email: '' }
+    );
 }`,
         `type Status = 'pending' | 'active' | 'completed';
 
@@ -234,11 +237,19 @@ export default function CodeType() {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [errors, setErrors] = useState(0)
     const [showLanguageMenu, setShowLanguageMenu] = useState(false)
+    const [liveNow, setLiveNow] = useState(Date.now())
     const inputRef = useRef<HTMLTextAreaElement>(null)
 
     useEffect(() => {
         resetGame()
     }, [language])
+
+    // Update live time every second so current WPM ticks while typing
+    useEffect(() => {
+        if (!startTime || isComplete) return
+        const interval = setInterval(() => setLiveNow(Date.now()), 1000)
+        return () => clearInterval(interval)
+    }, [startTime, isComplete])
 
     const resetGame = () => {
         const snippets = CODE_SNIPPETS[language]
@@ -283,6 +294,16 @@ export default function CodeType() {
         if (!startTime || !endTime) return 0
         const timeInMinutes = (endTime - startTime) / 60000
         const words = codeSnippet.split(' ').length
+        return Math.round(words / timeInMinutes)
+    }
+
+    // Current/live WPM while typing (standard: 5 chars = 1 word)
+    const getCurrentWPM = () => {
+        if (!startTime || userInput.length === 0) return null
+        const end = isComplete && endTime ? endTime : liveNow
+        const timeInMinutes = (end - startTime) / 60000
+        if (timeInMinutes <= 0) return 0
+        const words = userInput.length / 5
         return Math.round(words / timeInMinutes)
     }
 
@@ -369,7 +390,7 @@ export default function CodeType() {
                         <Zap className="w-4 h-4 text-yellow-500" />
                         <span className="text-sm text-slate-400">WPM</span>
                     </div>
-                    <div className="text-2xl font-bold">{isComplete ? calculateWPM() : '--'}</div>
+                    <div className="text-2xl font-bold">{isComplete ? calculateWPM() : (getCurrentWPM() ?? '--')}</div>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
                     <div className="flex items-center gap-2 mb-1">

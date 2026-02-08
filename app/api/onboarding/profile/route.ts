@@ -33,16 +33,14 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { fullName, university, major, yearOfStudy } = await req.json()
+        const body = await req.json()
+        const updates: Record<string, unknown> = {}
+        if (body.displayName !== undefined) updates.display_name = body.displayName
+        if (body.defaultSessionMinutes !== undefined) updates.default_session_minutes = body.defaultSessionMinutes
 
         const { data, error } = await supabase
             .from('profiles')
-            .update({
-                full_name: fullName,
-                university,
-                major,
-                year_of_study: yearOfStudy
-            })
+            .update(updates)
             .eq('id', user.id)
             .select()
             .single()

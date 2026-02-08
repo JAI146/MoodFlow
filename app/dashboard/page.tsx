@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, Zap, Target, TrendingUp, Clock, Flame, Book, Code, Calendar, Settings, LogOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
 const InteractiveParticleField = dynamic(() => import('@/components/InteractiveParticleField'), { ssr: false })
@@ -176,9 +177,9 @@ export default function Dashboard() {
                         <span className="text-2xl font-bold gradient-text">MoodFlow</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                        <Link href="/settings" className="p-2 rounded-lg hover:bg-white/10 transition-colors">
                             <Settings className="w-5 h-5" />
-                        </button>
+                        </Link>
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors text-red-400"

@@ -10,14 +10,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const sessionData = await req.json()
+        const body = await req.json()
+        const now = new Date().toISOString()
+        const sessionRow = {
+            user_id: user.id,
+            started_at: body.started_at ?? now,
+            planned_minutes: body.time_allocated ?? body.planned_minutes ?? 30,
+            mood_at_start: body.mood ?? body.mood_at_start ?? 'moderate',
+            task_type: body.task_type ?? 'general_study',
+            task_id: body.task_id ?? null,
+            notes: body.task_description ?? body.notes ?? null
+        }
 
         const { data, error } = await supabase
             .from('study_sessions')
-            .insert({
-                user_id: user.id,
-                ...sessionData
-            })
+            .insert(sessionRow)
             .select()
             .single()
 
