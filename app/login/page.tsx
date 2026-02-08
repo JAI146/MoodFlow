@@ -1,20 +1,39 @@
 'use client'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Brain, Mail, Lock, ArrowRight } from 'lucide-react'
+import { Brain, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { createClient } from '@/lib/supabase/client'
+import toast from 'react-hot-toast'
 
 const InteractiveParticleField = dynamic(() => import('@/components/InteractiveParticleField'), { ssr: false })
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Handle login logic here
-        console.log('Login:', { email, password })
+        setLoading(true)
+        try {
+            const supabase = createClient()
+            const { error } = await supabase.auth.signInWithPassword({ email, password })
+            if (error) {
+                toast.error(error.message ?? 'Sign in failed')
+                setLoading(false)
+                return
+            }
+            toast.success('Welcome back!')
+            router.push('/')
+            router.refresh()
+        } catch {
+            toast.error('Something went wrong')
+            setLoading(false)
+        }
     }
 
     return (
@@ -91,12 +110,19 @@ export default function LoginPage() {
                         {/* Submit Button */}
                         <motion.button
                             type="submit"
-                            className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-secondary text-white font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/50 transition-all"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                            disabled={loading}
+                            className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-secondary text-white font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/50 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                            whileHover={loading ? undefined : { scale: 1.02 }}
+                            whileTap={loading ? undefined : { scale: 0.98 }}
                         >
-                            Sign In
-                            <ArrowRight className="w-5 h-5" />
+                            {loading ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    Sign In
+                                    <ArrowRight className="w-5 h-5" />
+                                </>
+                            )}
                         </motion.button>
                     </form>
 
