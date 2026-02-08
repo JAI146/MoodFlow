@@ -90,10 +90,20 @@ export const startSessionMutationFetcher = (
   { arg }: { arg: Record<string, unknown> },
 ) => mutationFetcher('/api/sessions', 'POST', arg);
 
-/** PUT /api/sessions/[id]/complete — arg: { id, durationActual, completed, notes } */
+/** PUT /api/sessions/[id]/complete — arg: { id, durationActual, completed, notes?, clientDate? } */
 export const completeSessionMutationFetcher = (
   _key: string,
-  { arg }: { arg: { id: string; durationActual: number; completed: boolean; notes?: string } },
+  {
+    arg,
+  }: {
+    arg: {
+      id: string;
+      durationActual: number;
+      completed: boolean;
+      notes?: string;
+      clientDate?: string;
+    };
+  },
 ) => mutationFetcher(`/api/sessions/${arg.id}/complete`, 'PUT', arg);
 
 /** PUT /api/onboarding/profile — arg: { displayName?, defaultSessionMinutes? } */

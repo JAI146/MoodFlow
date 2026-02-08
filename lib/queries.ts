@@ -83,10 +83,59 @@ export async function getUserStats(userId: string) {
   });
 }
 
-export async function upsertUserStatsForCompletion(userId: string, durationMinutes: number) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split('T')[0];
+/** Compute current and longest streak from actual session completion dates (UTC date strings). */
+function computeStreaksFromDates(dateStrs: string[]): { current: number; longest: number } {
+  const sorted = [...new Set(dateStrs)].sort();
+  if (sorted.length === 0) return { current: 0, longest: 0 };
+  let longest = 1;
+  let run = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1] + 'T00:00:00.000Z').getTime();
+    const curr = new Date(sorted[i] + 'T00:00:00.000Z').getTime();
+    const gap = (curr - prev) / (1000 * 60 * 60 * 24);
+    if (gap === 1) {
+      run += 1;
+      longest = Math.max(longest, run);
+    } else {
+      run = 1;
+    }
+  }
+  const lastDate = sorted[sorted.length - 1];
+  run = 1;
+  for (let i = sorted.length - 2; i >= 0; i--) {
+    const curr = new Date(sorted[i + 1] + 'T00:00:00.000Z').getTime();
+    const prev = new Date(sorted[i] + 'T00:00:00.000Z').getTime();
+    if ((curr - prev) / (1000 * 60 * 60 * 24) === 1) run += 1;
+    else break;
+  }
+  return { current: run, longest };
+}
+
+export async function getStreaksFromSessions(userId: string): Promise<{
+  current: number;
+  longest: number;
+} | null> {
+  const sessions = await prisma.studySession.findMany({
+    where: { userId, endedAt: { not: null } },
+    select: { endedAt: true },
+  });
+  const dateStrs = sessions
+    .map((s) => s.endedAt!.toISOString().split('T')[0])
+    .filter(Boolean);
+  if (dateStrs.length === 0) return null;
+  return computeStreaksFromDates(dateStrs);
+}
+
+/** Optional YYYY-MM-DD for the completion day (client local date). If omitted, uses server UTC. */
+export async function upsertUserStatsForCompletion(
+  userId: string,
+  durationMinutes: number,
+  completedDateStr?: string,
+) {
+  const todayStr =
+    completedDateStr && /^\d{4}-\d{2}-\d{2}$/.test(completedDateStr)
+      ? completedDateStr
+      : new Date().toISOString().split('T')[0];
 
   const existing = await prisma.userStats.findUnique({
     where: { userId },
@@ -100,9 +149,10 @@ export async function upsertUserStatsForCompletion(userId: string, durationMinut
 
   let newStreak: number;
   if (lastSessionDate) {
-    const last = new Date(lastSessionDate);
-    last.setHours(0, 0, 0, 0);
-    const daysDiff = Math.floor((today.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+    const lastStr = lastSessionDate.toISOString().split('T')[0];
+    const todayMs = new Date(todayStr + 'T00:00:00.000Z').getTime();
+    const lastMs = new Date(lastStr + 'T00:00:00.000Z').getTime();
+    const daysDiff = Math.floor((todayMs - lastMs) / (1000 * 60 * 60 * 24));
     if (daysDiff === 0) newStreak = prevStreak;
     else if (daysDiff === 1) newStreak = prevStreak + 1;
     else newStreak = 1;

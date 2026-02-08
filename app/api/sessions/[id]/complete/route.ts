@@ -15,7 +15,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { durationActual, completed, notes } = await req.json();
+    const { durationActual, completed, notes, clientDate } = await req.json();
     const durationMinutes = durationActual ?? 0;
 
     const session = await prisma.studySession.updateMany({
@@ -32,7 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    await upsertUserStatsForCompletion(user.id, durationMinutes);
+    await upsertUserStatsForCompletion(user.id, durationMinutes, clientDate);
 
     const updated = await prisma.studySession.findUnique({
       where: { id },

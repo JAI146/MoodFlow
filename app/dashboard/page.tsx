@@ -27,13 +27,12 @@ import {
   startSessionMutationFetcher,
   completeSessionMutationFetcher,
 } from '@/lib/swr';
+import { MoodLevel } from '@/lib/generated/prisma/enums';
 
 const InteractiveParticleField = dynamic(() => import('@/components/InteractiveParticleField'), {
   ssr: false,
 });
 const CodeType = dynamic(() => import('@/components/CodeType'), { ssr: false });
-
-type Mood = 'low' | 'moderate' | 'high';
 
 interface UserStats {
   total_study_time: number;
@@ -59,6 +58,11 @@ function formatStudyTime(totalMinutes: number): string {
   return `${m}m`;
 }
 
+/** User's local date as YYYY-MM-DD (for streak = one calendar day) */
+function getClientDateStr(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 interface ProfileData {
   display_name?: string | null;
   default_session_minutes?: number | null;
@@ -67,15 +71,16 @@ interface ProfileData {
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [mood, setMood] = useState<Mood | null>(null);
+  const [mood, setMood] = useState<MoodLevel | null>(null);
   const [timeAvailable, setTimeAvailable] = useState<number>(30);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
 
+  const clientToday = getClientDateStr();
   const { data: stats, mutate: mutateStats } = useSWR<UserStats | null>(
-    user ? '/api/stats' : null,
+    user ? `/api/stats?clientToday=${clientToday}` : null,
     statsFetcher,
   );
 
@@ -166,6 +171,7 @@ export default function Dashboard() {
         durationActual: actualDuration,
         completed: true,
         notes: 'Session completed from dashboard',
+        clientDate: getClientDateStr(),
       });
       setSessionActive(false);
       setCurrentSessionId(null);
@@ -184,7 +190,7 @@ export default function Dashboard() {
     router.push('/');
   };
 
-  const moods: { value: Mood; label: string; emoji: string; color: string }[] = [
+  const moods: { value: MoodLevel; label: string; emoji: string; color: string }[] = [
     { value: 'low', label: 'Low Energy', emoji: '😴', color: 'from-blue-500 to-cyan-500' },
     { value: 'moderate', label: 'Moderate', emoji: '😊', color: 'from-purple-500 to-pink-500' },
     { value: 'high', label: 'High Energy', emoji: '🚀', color: 'from-orange-500 to-red-500' },
