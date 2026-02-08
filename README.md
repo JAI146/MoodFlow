@@ -5,11 +5,13 @@
 ## 🧩 The Problem
 
 Students often struggle with studying not because they lack motivation, but because they don't know:
+
 - **What** to work on
-- **When** to work on it  
+- **When** to work on it
 - **How** to study effectively
 
 Most existing tools fall into two categories:
+
 1. **Scheduling apps** that ignore a student's mood, energy, and mental state
 2. **Learning platforms** that provide content but don't consider real schedules, deadlines, or available time
 
@@ -24,13 +26,14 @@ MoodFlow is a smart, mood-aware study assistant that helps students decide **wha
 - ⏱️ **Available Time** (15, 30, or 60 minutes)
 
 Based on these inputs, MoodFlow recommends the most suitable task:
+
 - Assignment work
-- Exam preparation  
+- Exam preparation
 - Code typing practice (inspired by Monkeytype but with real code)
 
 ## ✨ Key Features
 
-- **AI-Powered Recommendations** (Claude Sonnet 4)
+- **AI-Powered Recommendations** (Gemini Flash Lite Latest)
 - **Mood-Based Task Matching**
 - **Code Typing Practice** (Python, JavaScript, etc.)
 - **Streak Tracking & Gamification**
@@ -40,6 +43,7 @@ Based on these inputs, MoodFlow recommends the most suitable task:
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - **Next.js 16** (React, TypeScript)
 - **Tailwind CSS** v4
 - **Framer Motion** (animations)
@@ -47,8 +51,9 @@ Based on these inputs, MoodFlow recommends the most suitable task:
 - **Lucide React** (icons)
 
 ### Backend
+
 - **Supabase** (PostgreSQL, Authentication, Real-time)
-- **Anthropic Claude API** (AI recommendations)
+- **Gemini API** (AI recommendations)
 - **Next.js API Routes** (serverless functions)
 
 ## 🚀 Quick Start
@@ -66,6 +71,7 @@ npm install
 **Full guide**: See [`BACKEND_SETUP.md`](./BACKEND_SETUP.md) or [`BACKEND_COMPLETE.md`](./BACKEND_COMPLETE.md)
 
 **Quick version**:
+
 1. Create Supabase project at [supabase.com](https://supabase.com)
 2. Run migrations with Prisma (`npx prisma migrate deploy`) or apply schema as needed
 3. Get a Google AI (Gemini) API key from [Google AI Studio](https://aistudio.google.com/apikey)
@@ -138,6 +144,7 @@ MoodFlow/
 ## 📊 Database Schema
 
 10 tables tracking:
+
 - User profiles
 - Courses & assignments
 - Exams & schedules
@@ -167,6 +174,7 @@ See `supabase-schema.sql` for full schema.
 See full testing guide in `BACKEND_SETUP.md`.
 
 Quick API test:
+
 ```bash
 # Test signup
 curl -X POST http://localhost:3000/api/auth/signup \
@@ -184,7 +192,7 @@ Built for a hackathon by Team JAI146
 
 ## 🙏 Acknowledgments
 
-- **Anthropic** for Claude API
+- **Anthropic** for Gemini API
 - **Supabase** for backend infrastructure
 - **Vercel** for Next.js framework
 - **Three.js** for 3D graphics
