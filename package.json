@@ -12,7 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "prisma generate && tsx prisma/seed.ts",
-    "db:migrate:run": "tsx scripts/run-migration.ts"
+    "db:ensure-enums": "tsx scripts/ensure-enums.ts"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
@@ -45,6 +45,7 @@
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@google/genai": "^1.40.0",
     "@vercel/analytics": "^1.6.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -62,6 +63,7 @@
     "react-hot-toast": "^2.6.0",
     "react-intersection-observer": "^10.0.2",
     "recharts": "^3.7.0",
+    "swr": "^2.2.5",
     "tailwind-merge": "^3.4.0",
     "three": "^0.182.0",
     "zod": "^4.3.6"

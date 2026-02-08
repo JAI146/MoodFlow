@@ -1,21 +1,17 @@
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY
-})
+import { GoogleGenAI } from '@google/genai';
 
 interface RecommendationContext {
-    mood: 'low' | 'moderate' | 'high'
-    timeAvailable: number // minutes
-    assignments: any[]
-    exams: any[]
-    studyHistory: any[]
-    preferences: any
-    currentTime: Date
+  mood: 'low' | 'moderate' | 'high';
+  timeAvailable: number; // minutes
+  assignments: any[];
+  exams: any[];
+  studyHistory: any[];
+  preferences: any;
+  currentTime: Date;
 }
 
 export async function getStudyRecommendation(context: RecommendationContext) {
-    const prompt = `
+  const prompt = `
 You are an AI study assistant helping a student decide what to study right now.
 
 STUDENT CONTEXT:
@@ -54,7 +50,7 @@ RULES:
 
 RESPONSE FORMAT (JSON only, no explanation):
 {
-  "task_type": "assignment|exam|coding|reading|review",
+  "task_type": "assignment|exam_prep|typing_game|general_study",
   "task_id": "uuid or null for new task",
   "task_name": "Specific task name",
   "description": "What exactly to work on (be specific)",
@@ -62,44 +58,69 @@ RESPONSE FORMAT (JSON only, no explanation):
   "sub_steps": ["Step 1", "Step 2", "Step 3"],
   "estimated_completion": 25
 }
-`
+`;
 
-    try {
-        const message = await anthropic.messages.create({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            messages: [{
-                role: 'user',
-                content: prompt
-            }]
-        })
+  const apiKey = process.env.GEMINI_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey?.trim()) {
+    console.warn('GEMINI_KEY is not set; using fallback recommendation.');
+    return getFallbackRecommendation(context);
+  }
 
-        const responseText = message.content[0].type === 'text'
-            ? message.content[0].text
-            : ''
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: 'gemini-flash-lite-latest',
+      contents: prompt,
+    });
+    const responseText = (response.text ?? '')?.trim() ?? '';
 
-        // Parse JSON response
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) {
-            throw new Error('Failed to parse AI response')
-        }
-
-        return JSON.parse(jsonMatch[0])
-    } catch (error) {
-        console.error('AI recommendation error:', error)
-        // Fallback recommendation
-        return {
-            task_type: 'coding',
-            task_id: null,
-            task_name: 'Code Typing Practice',
-            description: 'Practice typing code to improve muscle memory',
-            reasoning: 'AI service temporarily unavailable. Default to code practice as a productive use of time.',
-            sub_steps: [
-                'Choose a programming language',
-                'Complete 5-minute typing challenge',
-                'Review mistakes and retry'
-            ],
-            estimated_completion: Math.min(context.timeAvailable, 15)
-        }
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Failed to parse AI response');
     }
+
+    const data = JSON.parse(jsonMatch[0]);
+    data.task_type = normalizeTaskType(data.task_type);
+    return data;
+  } catch (error: unknown) {
+    const isRateLimit =
+      (error as { status?: number })?.status === 429 ||
+      String((error as Error)?.message ?? '').includes('429') ||
+      String((error as Error)?.message ?? '')
+        .toLowerCase()
+        .includes('quota');
+    if (isRateLimit) {
+      console.warn('Gemini rate limit (429); using fallback recommendation.');
+    } else {
+      console.error('AI recommendation error:', error);
+    }
+    return getFallbackRecommendation(context);
+  }
+}
+
+function normalizeTaskType(
+  raw: unknown,
+): 'assignment' | 'exam_prep' | 'general_study' | 'typing_game' {
+  const s = String(raw ?? '').toLowerCase();
+  if (s === 'assignment') return 'assignment';
+  if (s === 'exam_prep' || s === 'exam') return 'exam_prep';
+  if (s === 'coding' || s === 'typing_game') return 'typing_game';
+  return 'general_study';
+}
+
+function getFallbackRecommendation(context: RecommendationContext) {
+  return {
+    task_type: 'typing_game',
+    task_id: null,
+    task_name: 'Code Typing Practice',
+    description: 'Practice typing code to improve muscle memory',
+    reasoning:
+      'AI service temporarily unavailable. Default to code practice as a productive use of time.',
+    sub_steps: [
+      'Choose a programming language',
+      'Complete 5-minute typing challenge',
+      'Review mistakes and retry',
+    ],
+    estimated_completion: Math.min(context.timeAvailable, 15),
+  };
 }

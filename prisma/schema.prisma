@@ -99,17 +99,19 @@ model Exam {
 }
 
 model StudySession {
-  id            String      @id @default(uuid()) @db.Uuid
-  userId        String      @map("user_id") @db.Uuid
-  startedAt     DateTime    @map("started_at") @db.Timestamptz
-  endedAt       DateTime?   @map("ended_at") @db.Timestamptz
-  plannedMinutes Int        @map("planned_minutes")
-  moodAtStart   MoodLevel   @map("mood_at_start")
-  taskType      TaskType    @map("task_type")
-  taskId        String?     @map("task_id") @db.Uuid
-  notes         String?
-  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  startedAt       DateTime    @map("started_at") @db.Timestamptz
+  endedAt         DateTime?   @map("ended_at") @db.Timestamptz
+  plannedMinutes  Int         @map("planned_minutes")
+  durationActual  Int?        @map("duration_actual")
+  completed       Boolean     @default(false)
+  moodAtStart     MoodLevel   @map("moodAtStart")
+  taskType        TaskType    @map("taskType")
+  taskId          String?     @map("task_id") @db.Uuid
+  notes           String?
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz
 
   assignment    Assignment? @relation(fields: [taskId], references: [id], onDelete: SetNull)
   moodLogs      MoodLog[]
@@ -181,5 +183,16 @@ model Snippet {
   difficulty String?
 
   @@map("snippets")
+}
+
+model UserStats {
+  userId          String    @id @map("user_id") @db.Uuid
+  totalStudyTime  Int       @default(0) @map("total_study_time")
+  totalSessions   Int       @default(0) @map("total_sessions")
+  currentStreak   Int       @default(0) @map("current_streak")
+  longestStreak   Int       @default(0) @map("longest_streak")
+  lastSessionDate DateTime? @map("last_session_date") @db.Date
+
+  @@map("user_stats")
 }
 
