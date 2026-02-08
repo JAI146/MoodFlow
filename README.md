@@ -67,15 +67,24 @@ npm install
 
 **Quick version**:
 1. Create Supabase project at [supabase.com](https://supabase.com)
-2. Run `supabase-schema.sql` in Supabase SQL Editor
-3. Get Anthropic API key from [console.anthropic.com](https://console.anthropic.com)
-4. Fill in `.env.local`:
+2. Run migrations with Prisma (`npx prisma migrate deploy`) or apply schema as needed
+3. Get a Google AI (Gemini) API key from [Google AI Studio](https://aistudio.google.com/apikey)
+4. Copy `.env.example` to `.env` (or create `.env`) and fill in:
 
 ```env
+# Supabase (from project Settings → API in Supabase dashboard)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-ANTHROPIC_API_KEY=your_anthropic_key
+
+# Database (from Supabase: Settings → Database → Connection string; use pooler for DATABASE_URL)
+DATABASE_URL="postgresql://postgres.[ref]:[password]@[host]:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[ref]:[password]@[host]:5432/postgres"
+
+# AI recommendations (Google Gemini)
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
+# or
+GEMINI_KEY=your_gemini_api_key
 ```
 
 ### 3. Run Development Server
@@ -109,7 +118,7 @@ MoodFlow/
 │   ├── ai/              # AI recommendation engine
 │   └── types/           # TypeScript definitions
 ├── supabase-schema.sql  # Database schema
-└── .env.local           # Environment variables (create this!)
+└── .env                 # Environment variables (create from .env.example)
 ```
 
 ## 🎯 Roadmap
