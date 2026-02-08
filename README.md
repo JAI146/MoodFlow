@@ -180,7 +180,7 @@ MIT License - see [LICENSE](./LICENSE)
 
 ## 👥 Team
 
-Built for a hackathon by Team JAI146
+Built for a hackathon by Team Open Source Hackers
 
 ## 🙏 Acknowledgments
 
